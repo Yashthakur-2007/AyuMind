@@ -1,3 +1,4 @@
+from app.services.text_cleaning_service import clean_text
 from fastapi import APIRouter, UploadFile, File
 from app.services.upload_service import save_uploaded_file
 from app.schemas.parser_schema import ParseRequest
@@ -11,11 +12,14 @@ def upload_file(file: UploadFile = File(...)):
 
     extracted_text = parse_pdf(file_path)
 
-    chunks = chunk_text(extracted_text)
+    cleaned_text = clean_text(extracted_text)
+
+    chunks = chunk_text(cleaned_text)
 
     return {
     "message": "File uploaded successfully",
     "filename": file.filename,
     "text": extracted_text,
-    "Chunks": chunks,
+    "cleaned_text": cleaned_text,
+    "chunks": chunks,
 }
