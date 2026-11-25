@@ -20,6 +20,18 @@ def save_uploaded_file(file: UploadFile):
             detail="Invalid PDF content type."
     )
 
+    # Validate actual PDF file signature
+    file_signature = file.file.read(5)
+
+    # Reset file pointer so the complete file can be saved
+    file.file.seek(0)
+
+    if file_signature != b"%PDF-":
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid PDF file signature."
+        )
+
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
     unique_id = str(uuid.uuid4())
