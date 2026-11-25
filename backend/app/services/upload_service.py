@@ -32,6 +32,19 @@ def save_uploaded_file(file: UploadFile):
             detail="Invalid PDF file signature."
         )
 
+    # Validate PDF file size (maximum 10 MB)
+    MAX_FILE_SIZE = 10 * 1024 * 1024
+
+    file.file.seek(0, 2)
+    file_size = file.file.tell()
+    file.file.seek(0)
+
+    if file_size > MAX_FILE_SIZE:
+        raise HTTPException(
+            status_code=413,
+            detail="File size exceeds the 10 MB limit."
+        )
+
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
     unique_id = str(uuid.uuid4())
