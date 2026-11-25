@@ -1,45 +1,27 @@
-from fastapi import UploadFile, HTTPException
-import shutil
-import os
-import uuid
 
-UPLOAD_FOLDER = "app/storage/uploads"
+from fastapi import APIRouter, UploadFile, File
+
+from app.services.upload_service import save_uploaded_file
+from app.services.pdf_parser_service import parse_pdf
+from app.services.text_cleaning_service import clean_text
+from app.services.chunking_service import chunk_text
+
+router = APIRouter()
 
 
-def save_uploaded_file(file: UploadFile):
+@router.post("/upload")
+def upload_file(file: UploadFile = File(...)):
+    file_path = save_uploaded_file(file)
 
-    if not file.filename.lower().endswith(".pdf"):
-        raise HTTPException(
-            status_code=400,
-            detail="Only PDF files are allowed."
-    )
+    extracted_text = parse_pdf(file_path)
+    cleaned_text = clean_text(extracted_text)
+    chunks = chunk_text(cleaned_text)
 
-    if file.content_type != "application/pdf":
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid PDF content type."
-    )
+    return {
+        "message": "File uploaded successfully",
+        "filename": file.filename,
+        "text": extracted_text,
+        "cleaned_text": cleaned_text,
+        "chunks": chunks
+    }
 
-    # Validate actual PDF file signature
-    file_signature = file.file.read(5)
-
-    # Reset file pointer so the complete file can be saved
-    file.file.seek(0)
-
-    if file_signature != b"%PDF-":
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid PDF file signature."
-        )
-
-    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
-    unique_id = str(uuid.uuid4())
-    unique_filename = f"{unique_id}_{file.filename}"
-
-    file_path = os.path.join(UPLOAD_FOLDER, unique_filename)
-
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
-
-    return file_path

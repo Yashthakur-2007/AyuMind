@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+
+=======
+>>>>>>> main
 from app.services.text_cleaning_service import clean_text
 from fastapi import APIRouter, UploadFile, File
 from app.services.upload_service import save_uploaded_file
@@ -11,9 +15,13 @@ def upload_file(file: UploadFile = File(...)):
     file_path = save_uploaded_file(file)
 
     extracted_text = parse_pdf(file_path)
+<<<<<<< HEAD
+    cleaned_text = clean_text(extracted_text)
+=======
 
     cleaned_text = clean_text(extracted_text)
 
+>>>>>>> main
     chunks = chunk_text(cleaned_text)
 
     return {
@@ -21,5 +29,10 @@ def upload_file(file: UploadFile = File(...)):
     "filename": file.filename,
     "text": extracted_text,
     "cleaned_text": cleaned_text,
+<<<<<<< HEAD
+    "Chunks": chunks,
+}
+=======
     "chunks": chunks,
 }
+>>>>>>> main
